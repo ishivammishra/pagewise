@@ -1,24 +1,16 @@
-# Environment variables — NEVER push this
 .env
-
-# Virtual environment
 venv/
-
-# Vector database (generated automatically)
 chroma_db/
 
-# Python cache
 __pycache__/
 *.pyc
 *.pyo
 
-# Temp files
 *.tmp
 *.temp
 
-# OS files
 .DS_Store
 Thumbs.db
 
-# VS Code
 .vscode/
+.streamlit/secrets.toml

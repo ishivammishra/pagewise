@@ -21,10 +21,17 @@ from langchain.prompts import PromptTemplate
 load_dotenv()
 
 
-# Safety check
-if not os.getenv("GROQ_API_KEY"):
+# Works on both local (.env) and Streamlit Cloud (st.secrets)
+def get_api_key():
+    try:
+        return st.secrets["GROQ_API_KEY"]    # Streamlit Cloud
+    except:
+        return os.getenv("GROQ_API_KEY")     # local .env
 
-    raise ValueError("Missing GROQ_API_KEY in .env")
+
+# Safety check
+if not get_api_key():
+    raise ValueError("Missing GROQ_API_KEY in .env or Streamlit secrets")
 
 
 # Cache embeddings
@@ -64,7 +71,7 @@ def create_vector_store(chunks):
 def build_qa_chain(vector_store):
 
     llm = ChatGroq(
-        api_key=os.getenv("GROQ_API_KEY"),
+        api_key=get_api_key(),               # updated to use get_api_key()
         model_name="llama-3.1-8b-instant",
         temperature=0.2,
     )
