@@ -36,7 +36,7 @@ if not get_api_key():
     raise ValueError("Missing GROQ_API_KEY in .env or Streamlit secrets")
 
 
-# Cache embeddings
+# Cache embeddings — downloaded once, reused forever
 @st.cache_resource
 def load_embeddings():
     return HuggingFaceEmbeddings(
@@ -44,6 +44,12 @@ def load_embeddings():
         model_kwargs={"device": "cpu"},
         encode_kwargs={"normalize_embeddings": True},
     )
+
+
+# Cache chromadb client — prevents "already exists" conflict
+@st.cache_resource
+def get_chroma_client():
+    return chromadb.EphemeralClient()
 
 
 def load_and_split_pdf(path):
@@ -55,14 +61,17 @@ def load_and_split_pdf(path):
 
 def create_vector_store(chunks):
     embeddings = load_embeddings()
+    client = get_chroma_client()
 
-    # Explicit client fixes ChromaDB tenant error on Streamlit Cloud
-    client = chromadb.Client(Settings(anonymized_telemetry=False))
+    # Unique collection name each time — prevents collision between uploads
+    import uuid
+    collection_name = f"pdf_{uuid.uuid4().hex[:8]}"
 
     vector_store = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
-        client=client
+        client=client,
+        collection_name=collection_name
     )
     return vector_store
 
