@@ -229,7 +229,7 @@ with st.sidebar:
         🔗 LangChain<br>
         ⚡ Groq LLaMA 3.1<br>
         🧠 HuggingFace Embeddings<br>
-        🗄️ ChromaDB<br>
+        ⚡ FAISS Vector Store<br>
         🎈 Streamlit
     </div>
     """,

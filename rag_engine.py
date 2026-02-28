@@ -1,7 +1,5 @@
 import os
 import streamlit as st
-import chromadb
-from chromadb.config import Settings
 
 from dotenv import load_dotenv
 
@@ -11,7 +9,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from langchain_huggingface import HuggingFaceEmbeddings
 
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 
 from langchain_groq import ChatGroq
 
@@ -46,12 +44,6 @@ def load_embeddings():
     )
 
 
-# Cache chromadb client — prevents "already exists" conflict
-@st.cache_resource
-def get_chroma_client():
-    return chromadb.EphemeralClient()
-
-
 def load_and_split_pdf(path):
     loader = PyPDFLoader(path)
     docs = loader.load()
@@ -61,17 +53,11 @@ def load_and_split_pdf(path):
 
 def create_vector_store(chunks):
     embeddings = load_embeddings()
-    client = get_chroma_client()
 
-    # Unique collection name each time — prevents collision between uploads
-    import uuid
-    collection_name = f"pdf_{uuid.uuid4().hex[:8]}"
-
-    vector_store = Chroma.from_documents(
+    # FAISS — pure in-memory, no tenant issues, works everywhere
+    vector_store = FAISS.from_documents(
         documents=chunks,
-        embedding=embeddings,
-        client=client,
-        collection_name=collection_name
+        embedding=embeddings
     )
     return vector_store
 
@@ -114,7 +100,10 @@ Answer:
     chain = RetrievalQA.from_chain_type(
         llm=llm,
         chain_type="stuff",
-        retriever=vector_store.as_retriever(search_type="mmr", search_kwargs={"k": 5}),
+        retriever=vector_store.as_retriever(
+            search_type="mmr",
+            search_kwargs={"k": 5}
+        ),
         chain_type_kwargs={"prompt": prompt},
         return_source_documents=True,
     )
