@@ -5,14 +5,11 @@ import time
 from rag_engine import load_and_split_pdf, create_vector_store, build_qa_chain
 
 # Page configuration
-st.set_page_config(
-    page_title="Pagewise",
-    page_icon="📄",
-    layout="centered"
-)
+st.set_page_config(page_title="Pagewise", page_icon="📄", layout="centered")
 
-# -----Custom CSS------ 
-st.markdown("""
+# -----Custom CSS------
+st.markdown(
+    """
 <style>
 /* Import Google Font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
@@ -188,15 +185,20 @@ hr {
 ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #6366f1; }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
-# ---Hero Header---- 
-st.markdown("""
+# ---Hero Header----
+st.markdown(
+    """
 <div class="hero">
     <h1>📄 Pagewise</h1>
     <p>Ask anything about your document — powered by LLaMA 3.1 + RAG</p>
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # ------Sidebar---------
 with st.sidebar:
@@ -206,19 +208,23 @@ with st.sidebar:
         "Split into chunks",
         "Stored as vectors",
         "Question finds chunks",
-        "LLM answers"
+        "LLM answers",
     ]
     for i, step in enumerate(steps, 1):
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div class="step-item">
             <div class="step-number">{i}</div>
             <span>{step}</span>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
 
     st.markdown("---")
     st.markdown('<div class="sidebar-title">Stack</div>', unsafe_allow_html=True)
-    st.markdown("""
+    st.markdown(
+        """
     <div style="font-size:0.82rem; line-height:1.8; color:#6b7280;">
         🔗 LangChain<br>
         ⚡ Groq LLaMA 3.1<br>
@@ -226,7 +232,9 @@ with st.sidebar:
         🗄️ ChromaDB<br>
         🎈 Streamlit
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 # -----------Session State--------------
 if "messages" not in st.session_state:
@@ -238,13 +246,11 @@ if "pdf_name" not in st.session_state:
 
 # ------------File Upload------------------
 uploaded_file = st.file_uploader(
-    "Upload your PDF",
-    type="pdf",
-    label_visibility="collapsed"
+    "Upload your PDF", type="pdf", label_visibility="collapsed"
 )
 
 if uploaded_file:
-    
+
     if st.session_state.pdf_name != uploaded_file.name:
         with st.spinner("Processing PDF..."):
             try:
@@ -268,24 +274,23 @@ if uploaded_file:
                 st.error(f"Error processing PDF: {e}")
                 st.stop()
 
-    
-    st.markdown(f'<div class="status-badge">✓ {uploaded_file.name}</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="status-badge">✓ {uploaded_file.name}</div>',
+        unsafe_allow_html=True,
+    )
 
-    
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.write(msg["content"])
 
-    
     question = st.chat_input("Ask anything about your PDF...")
 
     if question:
-        
+
         st.session_state.messages.append({"role": "user", "content": question})
         with st.chat_message("user"):
             st.write(question)
 
-        
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
 
@@ -301,9 +306,8 @@ if uploaded_file:
             for char in full_answer:
                 displayed += char
                 message_placeholder.markdown(displayed + "▌")
-                time.sleep(0.008)   # speed of typing — lower = faster
+                time.sleep(0.008)  # speed of typing — lower = faster
 
-            
             message_placeholder.markdown(full_answer)
 
         st.session_state.messages.append({"role": "assistant", "content": full_answer})
@@ -319,7 +323,8 @@ if uploaded_file:
 
 # No file uploaded state
 else:
-    st.markdown("""
+    st.markdown(
+        """
     <div style="text-align:center; padding: 3rem 0; color: #374151;">
         <div style="font-size: 3rem; margin-bottom: 1rem;">📂</div>
         <div style="font-size: 1rem; color: #6b7280;">Upload a PDF above to start chatting</div>
@@ -327,4 +332,6 @@ else:
             Try your resume, a research paper, or any document
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )

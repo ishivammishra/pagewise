@@ -1,5 +1,7 @@
 import os
 import streamlit as st
+import chromadb
+from chromadb.config import Settings
 
 from dotenv import load_dotenv
 
@@ -37,7 +39,6 @@ if not get_api_key():
 # Cache embeddings
 @st.cache_resource
 def load_embeddings():
-
     return HuggingFaceEmbeddings(
         model_name="paraphrase-MiniLM-L3-v2",
         model_kwargs={"device": "cpu"},
@@ -46,32 +47,29 @@ def load_embeddings():
 
 
 def load_and_split_pdf(path):
-
     loader = PyPDFLoader(path)
-
     docs = loader.load()
-
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-
     return splitter.split_documents(docs)
 
 
 def create_vector_store(chunks):
-
     embeddings = load_embeddings()
+
+    # Explicit client fixes ChromaDB tenant error on Streamlit Cloud
+    client = chromadb.Client(Settings(anonymized_telemetry=False))
 
     vector_store = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
+        client=client
     )
-
     return vector_store
 
 
 def build_qa_chain(vector_store):
-
     llm = ChatGroq(
-        api_key=get_api_key(),               # updated to use get_api_key()
+        api_key=get_api_key(),
         model_name="llama-3.1-8b-instant",
         temperature=0.2,
     )
